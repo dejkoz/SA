@@ -1,3 +1,4 @@
 #include <stdio.h>
 #include "feature.h"
-#include <stdin.h>
+#include <math.h>
+
