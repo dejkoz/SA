@@ -1,2 +1,2 @@
-void feature(long x);
+void feature(int x);
 void api();
