@@ -1,0 +1,39 @@
+name: 29939_deploy
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  REPONAME: ${{ secrets.REPONAME }}
+on:
+  workflow_run:
+    workflows: ["29939_test"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repozitorija
+        uses: actions/checkout@v4
+
+      - name: Ustvari Dockerfile
+        run: |
+          echo "FROM ubuntu:22.04" > Dockerfile
+          echo "WORKDIR /app" >> Dockerfile
+          echo "COPY pripravi_izvajalno_okolje.sh ." >> Dockerfile
+          echo "RUN chmod +x pripravi_izvajalno_okolje.sh" >> Dockerfile
+          echo 'CMD ["bash", "pripravi_izvajalno_okolje.sh"]' >> Dockerfile
+      
+      - name: Prijava v Docker
+        run: |
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      
+      - name: Zgradi docker sliko
+        run: |
+          echo "docker build . --file Dockerfile --tag $DOCKER_USERNAME/$REPONAME:latest"
+          docker build . --file Dockerfile --tag $DOCKER_USERNAME/$REPONAME:latest
+
+      - name: Potisni docker sliko
+        run: |
+          docker push "$DOCKER_USERNAME/$REPONAME:latest"

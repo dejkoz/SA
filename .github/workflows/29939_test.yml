@@ -1,0 +1,49 @@
+name: 29939_test
+
+on:
+  push:
+    branches: main
+  workflow_dispatch:
+
+jobs:
+  job_1:
+    name: Preverjanje testov
+    strategy:
+      matrix:
+        runner: [self-hosted, ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ali obstajajo testi
+        run: |
+          #ls testi/*.sh 2> napaka.txt;
+          if ! ls testi/*.sh 2> napaka.txt; then
+            echo "Testne skripte ne obstajajo."
+          fi
+      - name: Shrani napako
+        uses: actions/upload-artifact@v4
+        with:
+           name: napaka
+           path: napaka.txt
+
+  job_2:
+    name: Pripravi teste
+    needs: job_1
+    runs-on: self-hosted
+    steps:
+     - name: Prenesi napako za posel 1
+       uses: actions/download-artifact@v4
+       with:
+        name: napaka
+     - name: Ali je tekom preverjanja nastala napaka
+       run: |
+          if [ -s "napaka.txt" ]; then
+            echo "Nastala je napaka... Prekinjam";
+            exit 1;
+          fi
+     - name: Zaženi teste
+       run: |
+         for test in testi/*.sh; do
+             echo "Poganjam $test"
+             bash "$test"
+         done
