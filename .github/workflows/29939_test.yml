@@ -44,6 +44,7 @@ jobs:
             echo "Nastala je napaka... Prekinjam";
             exit 1;
           fi
+     - uses: actions/checkout@v4
      - name: Zaženi teste
        run: |
          for test in testi/*.sh; do
